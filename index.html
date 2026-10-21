@@ -1,0 +1,1244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="读懂 API 与 RAG：亲手寄一封 API 信，体验 AI 没有记忆，看 RAG 怎样翻书答题。给文科同学的互动学习网站。">
+<title>API 与 RAG 动手学</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fonts load without blocking the page: if Google Fonts is slow or unreachable, system fonts are used. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap"></noscript>
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+
+/* Layout: one reading column (max 1120px) of lessons; each pairs a short explanation with a hands-on panel. Blue marks API, orange marks RAG, matching the slide deck. */
+:root {
+  --bg: #F4F6F8;
+  --surface: #FCFDFE;
+  --surface-2: #E9EDF2;
+  --ink: #172033;
+  --ink-2: #4A5568;
+  --ink-3: #5D6879;
+  --line: #D5DCE6;
+  --api: #2A5BD7;
+  --api-tint: #E3EBFB;
+  --rag: #B4530A;
+  --rag-tint: #FBE9D9;
+  --on-accent: #F8FAFC;
+  --code-bg: #172033;
+  --code-ink: #DCE3EE;
+  --code-dim: #93A0B6;
+  --code-key: #8FB0FF;
+  --code-str: #F5C08A;
+  --code-num: #9FE0B8;
+  --ok: #1F7A4D;
+  --ok-tint: #E2F3EA;
+  --bad: #B42318;
+  --bad-tint: #FBE4E1;
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', Georgia, serif;
+  --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1522; --surface: #172033; --surface-2: #1F2B42; --ink: #EEF2F7; --ink-2: #B9C3D6; --ink-3: #96A3B8; --line: #2C3A55;
+    --api: #8FB0FF; --api-tint: #1C2A4A; --rag: #F5A04A; --rag-tint: #3A2716; --on-accent: #0F1522;
+    --code-bg: #0A0F19; --code-ink: #DCE3EE; --code-dim: #8A97AD; --code-key: #8FB0FF; --code-str: #F5C08A; --code-num: #9FE0B8;
+    --ok: #5BC48A; --ok-tint: #15301F; --bad: #F2867C; --bad-tint: #3A1A17;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1522; --surface: #172033; --surface-2: #1F2B42; --ink: #EEF2F7; --ink-2: #B9C3D6; --ink-3: #96A3B8; --line: #2C3A55;
+  --api: #8FB0FF; --api-tint: #1C2A4A; --rag: #F5A04A; --rag-tint: #3A2716; --on-accent: #0F1522;
+  --code-bg: #0A0F19; --code-ink: #DCE3EE; --code-dim: #8A97AD; --code-key: #8FB0FF; --code-str: #F5C08A; --code-num: #9FE0B8;
+  --ok: #5BC48A; --ok-tint: #15301F; --bad: #F2867C; --bad-tint: #3A1A17;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+p, ul, ol, h1, h2, h3, figure, blockquote { margin: 0; }
+a { color: var(--api); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.muted { color: var(--ink-3); }
+.small { font-size: 14px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--api); outline-offset: 2px; border-radius: 6px; }
+
+/* nav */
+.topnav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--surface); border-bottom: 1px solid var(--line); }
+.nav-inner { display: flex; align-items: center; gap: 16px; height: 56px; }
+.brand { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.nav-links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a { padding: 6px 10px; border-radius: 8px; color: var(--ink-2); text-decoration: none; white-space: nowrap; font-size: 14px; }
+.nav-links a:hover { background: var(--surface-2); color: var(--ink); }
+.nav-links a.active { background: var(--surface-2); color: var(--ink); font-weight: 700; }
+
+/* hero */
+.hero { padding-block: 56px 40px; display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink-3); }
+h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(40px, 7vw, 76px); line-height: 1.1; text-wrap: balance; }
+.t-api { color: var(--api); }
+.t-rag { color: var(--rag); }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 36em; }
+.metaphors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
+.metaphor { display: flex; flex-direction: column; gap: 4px; padding: 22px 24px; border-radius: 18px; text-decoration: none; color: var(--ink); }
+.metaphor.api { background: var(--api-tint); }
+.metaphor.rag { background: var(--rag-tint); }
+.m-k { font-family: var(--font-display); font-weight: 900; font-size: 24px; }
+.metaphor.api .m-k { color: var(--api); }
+.metaphor.rag .m-k { color: var(--rag); }
+.m-v { color: var(--ink); }
+.m-go { font-size: 14px; font-weight: 700; color: var(--ink-2); margin-top: 6px; }
+
+/* lessons */
+.lesson { padding-block: 56px; border-top: 1px solid var(--line); scroll-margin-top: calc(56px + env(safe-area-inset-top, 0px)); }
+.lesson > .wrap { display: flex; flex-direction: column; gap: 24px; }
+.lesson-head { display: flex; flex-direction: column; gap: 10px; max-width: 46em; }
+.tag { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; }
+.tag.api { color: var(--api); }
+.tag.rag { color: var(--rag); }
+.tag.neutral { color: var(--ink-3); }
+h2 { font-family: var(--font-display); font-size: clamp(26px, 4vw, 38px); line-height: 1.25; text-wrap: balance; }
+h3 { font-size: 18px; line-height: 1.4; text-wrap: balance; }
+.lesson-head p { color: var(--ink-2); font-size: 17px; }
+.note { display: inline-flex; align-self: flex-start; gap: 8px; align-items: center; font-size: 14px; color: var(--ink-2); background: var(--surface-2); padding: 6px 12px; border-radius: 999px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px 24px; min-width: 0; }
+.panel-k { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 12px; }
+.panel-k.mt { margin-top: 20px; }
+.two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+ul.plain, ol.plain { padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+
+/* restaurant table */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 12px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+thead th { border-top: 0; background: var(--api-tint); font-size: 13px; letter-spacing: 0.06em; color: var(--ink-2); }
+td:first-child { font-weight: 700; white-space: nowrap; width: 6em; }
+.compare { display: flex; flex-direction: column; gap: 12px; }
+.cmp { border-radius: 16px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.cmp.api { background: var(--api-tint); border-color: transparent; }
+.cmp-k { font-weight: 700; }
+.cmp.api .cmp-k { color: var(--api); }
+.chips-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chips-k { font-weight: 700; margin-right: 4px; }
+.chip { font-size: 14px; padding: 4px 12px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
+
+/* forms */
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; color: var(--ink-2); }
+select, textarea, input[type="text"] { font: inherit; font-size: 15px; font-weight: 400; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; }
+textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+input[type="range"] { width: 100%; accent-color: var(--api); }
+.range-ends { display: flex; justify-content: space-between; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.btn { font: inherit; font-weight: 700; font-size: 15px; border: 0; border-radius: 12px; padding: 11px 18px; cursor: pointer; background: var(--api); color: var(--on-accent); }
+.btn.rag { background: var(--rag); }
+.btn.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+.btn:disabled { cursor: progress; filter: saturate(0.4); }
+.switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 700; font-size: 15px; }
+.switch input { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; border-radius: 13px; background: var(--line); position: relative; cursor: pointer; margin: 0; flex: none; transition: background 0.2s; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.25); transition: transform 0.2s; }
+.switch input:checked { background: var(--api); }
+.switch.rag input:checked { background: var(--rag); }
+.switch input:checked::after { transform: translateX(18px); }
+
+/* api simulator */
+.sim { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+.controls { display: flex; flex-direction: column; gap: 16px; }
+.send-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.letters { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.letter { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.letter-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; font-weight: 700; }
+.legend { font-size: 13px; font-weight: 400; color: var(--ink-3); }
+.code { background: var(--code-bg); color: var(--code-ink); font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7; border-radius: 16px; padding: 16px 18px; white-space: pre-wrap; word-break: break-word; overflow-x: auto; margin: 0; }
+.code .k { color: var(--code-key); }
+.code .s { color: var(--code-str); }
+.code .n { color: var(--code-num); }
+.code .c { color: var(--code-dim); }
+.code .mk { color: var(--code-str); font-family: var(--font-body); font-weight: 700; }
+.code .kw { color: var(--code-key); font-weight: 600; }
+.readable { background: var(--api-tint); border-radius: 16px; padding: 14px 18px; }
+.readable-k { font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+.readable-v { white-space: pre-wrap; }
+.flash { animation: flash 0.9s ease-out; }
+@keyframes flash { from { box-shadow: 0 0 0 4px var(--code-str); } to { box-shadow: 0 0 0 0 transparent; } }
+
+/* memory */
+.mem-controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+.mem { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.chat { display: flex; flex-direction: column; gap: 10px; }
+.bubble { max-width: 88%; padding: 10px 14px; border-radius: 16px; white-space: pre-wrap; font-size: 15px; }
+.bubble.user { align-self: flex-end; background: var(--api); color: var(--on-accent); border-bottom-right-radius: 4px; }
+.bubble.ai { align-self: flex-start; background: var(--surface-2); color: var(--ink); border-bottom-left-radius: 4px; }
+.bubble.forgot { outline: 2px solid var(--bad); }
+.envelope { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.envelope li { display: grid; grid-template-columns: 4.5em minmax(0, 1fr); gap: 10px; font-size: 14px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); }
+.envelope li.new { background: var(--api-tint); }
+.envelope .role { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); padding-top: 2px; }
+.envelope li.empty, .chat .empty, .growth .empty { display: block; background: none; padding: 0; font-size: 14px; }
+.growth { display: flex; flex-direction: column; gap: 8px; }
+.grow-row { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; font-size: 13px; color: var(--ink-3); }
+.grow-bar { height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.grow-bar i { display: block; height: 100%; background: var(--api); border-radius: 7px; transition: width 0.4s; }
+.tips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tip { padding: 16px 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); display: flex; flex-direction: column; gap: 4px; }
+.tip b { color: var(--ink); }
+.tip.api { background: var(--api-tint); border-color: transparent; }
+
+/* words */
+.word { display: flex; flex-direction: column; gap: 10px; }
+.mono-k { font-family: var(--font-mono); font-weight: 600; color: var(--api); font-size: 18px; }
+.word h3 { font-family: var(--font-display); font-size: 22px; }
+
+/* rag intro */
+.gaps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.gap { display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.gap b { font-family: var(--font-display); font-size: 20px; }
+.gap span { color: var(--ink-2); font-size: 15px; }
+.rag-steps { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: stretch; }
+.rstep { display: flex; flex-direction: column; gap: 4px; padding: 20px 22px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); }
+.rstep .big { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1; color: var(--rag); }
+.rstep .en { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
+.rstep b { font-family: var(--font-display); font-size: 22px; }
+.rstep span:last-child { color: var(--ink-2); font-size: 15px; }
+.arrow { align-self: center; color: var(--rag); font-size: 24px; font-weight: 700; }
+.phases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.phase { padding: 16px 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.phase.rag { background: var(--rag-tint); border-color: transparent; }
+.phase .panel-k { margin-bottom: 6px; }
+
+/* rag simulator */
+.rag-controls { display: flex; flex-direction: column; gap: 14px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.preset { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.preset[aria-pressed="true"] { background: var(--rag); border-color: var(--rag); color: var(--on-accent); font-weight: 700; }
+.ask { display: flex; gap: 10px; }
+.ask input { flex: 1; min-width: 0; }
+.toggles { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; }
+.seg { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 12px; background: var(--surface-2); }
+.seg-k { font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 0 8px; }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 5px 12px; border-radius: 9px; font-size: 14px; font-weight: 700; color: var(--ink-2); }
+.seg input:checked + span { background: var(--surface); color: var(--rag); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+.seg input:focus-visible + span { outline: 3px solid var(--api); outline-offset: 1px; }
+.disclose { font-size: 14px; color: var(--ink-3); }
+
+.pipeline { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.pstep { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; }
+.pnum { width: 36px; height: 36px; border-radius: 50%; background: var(--rag); color: var(--on-accent); display: grid; place-items: center; font-weight: 700; }
+.pbody { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pk { font-weight: 700; }
+.pk .muted { font-weight: 400; font-size: 14px; }
+.pq { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.retrieve { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 18px; align-items: start; }
+.chunks { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.chunk { display: grid; grid-template-columns: 28px minmax(0, 1fr) 92px; gap: 10px; align-items: start; padding: 9px 12px; border-radius: 12px; border: 1px solid transparent; transition: background 0.2s; }
+.chunk .cid { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--ink-2); }
+.chunk .csrc { font-size: 13px; font-weight: 700; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chunk .ctext { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+.chunk.picked { background: var(--rag-tint); }
+.chunk.picked .cid { background: var(--rag); color: var(--on-accent); }
+.chunk.picked .ctext { color: var(--ink); }
+.chunk.hl { border-color: var(--rag); }
+.chunks.off .chunk { background: none; }
+.chunks.off .chunk .cid { background: var(--surface-2); color: var(--ink-3); }
+.badge { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--surface); color: var(--rag); border: 1px solid var(--rag); }
+.badge.low { color: var(--ink-3); border-color: var(--line); }
+.cscore { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; font-size: 12px; color: var(--ink-3); padding-top: 3px; }
+.bar { width: 100%; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--rag); border-radius: 4px; }
+.mapfig { display: flex; flex-direction: column; gap: 8px; position: sticky; top: calc(72px + env(safe-area-inset-top, 0px)); }
+.mapfig figcaption { font-size: 13px; color: var(--ink-3); }
+#map { width: 100%; height: auto; display: block; background: var(--surface-2); border-radius: 14px; }
+.m-dot circle { fill: var(--surface); stroke: var(--ink-3); stroke-width: 1.5; }
+.m-dot text { fill: var(--ink-2); font: 700 11px var(--font-body); text-anchor: middle; }
+.m-dot.on circle { fill: var(--rag); stroke: var(--rag); }
+.m-dot.on text { fill: var(--on-accent); }
+.m-dot.hl circle { stroke: var(--ink); stroke-width: 3; }
+.m-line { stroke: var(--rag); stroke-width: 2; stroke-dasharray: 5 4; }
+.m-q circle { fill: var(--api); }
+.m-q text { fill: var(--api); font: 700 12px var(--font-body); text-anchor: middle; }
+.m-note { fill: var(--ink-3); font: 500 13px var(--font-body); text-anchor: middle; }
+.prompt .p-rule { color: var(--code-dim); }
+.prompt .p-mat { color: var(--code-str); }
+.prompt .p-q { color: var(--code-key); font-weight: 600; }
+.answer { display: flex; flex-direction: column; gap: 10px; }
+.ans-tag { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.ans-tag.ok { background: var(--ok-tint); color: var(--ok); }
+.ans-tag.bad { background: var(--bad-tint); color: var(--bad); }
+.ans-tag.none { background: var(--surface-2); color: var(--ink-2); }
+.answer ul { padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+.cite { font: inherit; font-size: 13px; font-weight: 700; color: var(--rag); background: var(--rag-tint); border: 0; border-radius: 6px; padding: 0 6px; margin-left: 4px; cursor: pointer; }
+.warn { font-size: 14px; color: var(--bad); }
+.hint { font-size: 14px; color: var(--ink-2); background: var(--surface-2); border-radius: 12px; padding: 10px 14px; }
+.firth { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px 28px; padding: 28px 30px; border-radius: 20px; background: var(--code-bg); color: var(--code-ink); }
+.firth-k { grid-column: 1 / -1; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: var(--code-str); }
+.firth blockquote { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 3vw, 30px); line-height: 1.35; }
+.firth-by { font-size: 14px; color: var(--code-dim); margin-top: 8px; }
+.firth p:last-child { color: var(--code-ink); font-size: 15px; align-self: end; }
+
+/* how-to */
+.howto { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.howto .panel { display: flex; flex-direction: column; gap: 14px; }
+.howto h3 { font-family: var(--font-display); font-size: 22px; }
+.ways { display: flex; flex-direction: column; gap: 10px; }
+.way { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); }
+.way span { color: var(--ink-2); font-size: 15px; }
+.steps { padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+.steps li::marker { color: var(--ink-3); font-weight: 700; }
+.tpl-box { display: flex; flex-direction: column; gap: 8px; }
+.tpl-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tpl-h .btn { padding: 6px 12px; font-size: 13px; }
+.limits { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.limit { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.limit b { font-size: 16px; }
+.limit span { font-size: 14px; color: var(--ink-2); }
+.limit em { font-style: normal; font-size: 13px; color: var(--rag); font-weight: 700; }
+
+/* quiz */
+.quiz-top { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.score { font-weight: 700; }
+.quiz { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.q h3 { font-size: 16px; }
+.q h3 .qn { color: var(--ink-3); margin-right: 6px; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { text-align: left; font: inherit; font-size: 15px; padding: 9px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.opt:hover:not(:disabled) { border-color: var(--ink-3); }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--ok); background: var(--ok-tint); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-tint); }
+.explain { font-size: 14px; color: var(--ink-2); }
+
+/* glossary */
+.glossary { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.term { padding: 14px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.term b { font-size: 16px; }
+.term.api b { color: var(--api); }
+.term.rag b { color: var(--rag); }
+.term span { font-size: 14px; color: var(--ink-2); }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--ink-3); font-size: 14px; }
+
+@media (max-width: 880px) {
+  .sim, .two, .mem, .howto, .retrieve, .firth { grid-template-columns: minmax(0, 1fr); }
+  .limits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quiz { grid-template-columns: minmax(0, 1fr); }
+  .mapfig { position: static; }
+}
+@media (max-width: 640px) {
+  .metaphors, .grid2, .tips, .gaps, .phases, .limits { grid-template-columns: minmax(0, 1fr); }
+  .rag-steps { grid-template-columns: minmax(0, 1fr); }
+  .arrow { transform: rotate(90deg); justify-self: center; }
+  .ask { flex-direction: column; }
+  .chunk { grid-template-columns: 28px minmax(0, 1fr); }
+  .cscore { grid-column: 2; flex-direction: row; align-items: center; }
+  .cscore .bar { width: 120px; }
+  .hero { padding-block: 36px 28px; }
+  .lesson { padding-block: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="页面导航">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" data-jump>API × RAG</a>
+    <div class="nav-links">
+      <a href="#api" data-jump>API 是什么</a>
+      <a href="#api-sim" data-jump>寄一封信</a>
+      <a href="#memory" data-jump>没有记忆</a>
+      <a href="#words" data-jump>两个词</a>
+      <a href="#rag" data-jump>RAG 是什么</a>
+      <a href="#rag-sim" data-jump>翻书实验</a>
+      <a href="#howto" data-jump>怎么用</a>
+      <a href="#quiz" data-jump>自测</a>
+      <a href="#glossary" data-jump>术语卡</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap" id="top">
+  <p class="eyebrow">人工智能与语言教学的研究与实践 · 配套学习网页</p>
+  <h1>读懂 <span class="t-api">API</span> 与 <span class="t-rag">RAG</span></h1>
+  <p class="lede">两个比喻，三个小实验。不用写代码，在这一页里亲手寄一封“API 信”，再看 AI 怎样开卷答题。</p>
+  <div class="metaphors">
+    <a class="metaphor api" href="#api" data-jump>
+      <span class="m-k">API ≈ 餐厅点单</span>
+      <span class="m-v">程序按约定好的格式，向 AI 点单。</span>
+      <span class="m-go">从这里开始 →</span>
+    </a>
+    <a class="metaphor rag" href="#rag" data-jump>
+      <span class="m-k">RAG ≈ 开卷考试</span>
+      <span class="m-v">先从资料里找到相关段落，再让 AI 照着回答。</span>
+      <span class="m-go">直接看 RAG →</span>
+    </a>
+  </div>
+</header>
+
+<main>
+  <!-- API: what -->
+  <section class="lesson" id="api">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag api">第一部分 · API · 是什么</p>
+        <h2>API 就像餐厅的点单方式</h2>
+        <p>API（Application Programming Interface，应用程序编程接口）是程序之间事先约定好的沟通格式。你的工具按格式“点单”，模型在后厨做好再“上菜”。你不用进后厨，也不用会做菜。</p>
+      </div>
+      <div class="two">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">在餐厅里</th><th scope="col">换成 AI</th></tr></thead>
+            <tbody>
+              <tr><td>顾客</td><td>你的工具：表格、问卷、批改系统</td></tr>
+              <tr><td>菜单</td><td>API 文档：能点什么、该怎么点</td></tr>
+              <tr><td>服务员</td><td>API：把订单送进后厨，再把菜端回来</td></tr>
+              <tr><td>后厨</td><td>大模型所在的服务器</td></tr>
+              <tr><td>会员卡</td><td>API Key：证明你是谁，从谁的账上扣钱</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="compare">
+          <div class="cmp">
+            <p class="cmp-k">网页聊天 = 堂食</p>
+            <ul class="plain"><li>你打一句，它回一句</li><li>一次处理一件事</li><li>结果靠手动复制粘贴</li></ul>
+          </div>
+          <div class="cmp api">
+            <p class="cmp-k">API = 团餐接口</p>
+            <ul class="plain"><li>程序替你发请求</li><li>一次处理 50 篇、500 条</li><li>结果自动回到表格或系统里</li></ul>
+          </div>
+          <p class="small muted">背后是同一个模型：网页给人用，API 给程序用。</p>
+        </div>
+      </div>
+      <div class="chips-line">
+        <span class="chips-k">你其实天天在用 API：</span>
+        <span class="chip">外卖 App 里的地图</span>
+        <span class="chip">“用微信登录”</span>
+        <span class="chip">天气 App 的数据</span>
+        <span class="chip">多维表格里的 AI 列</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- API: simulator -->
+  <section class="lesson" id="api-sim">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag api">API · 动手试</p>
+        <h2>亲手寄一封 API 信</h2>
+        <p>左边改，右边的“信”跟着变。点“寄出这封信”，看看寄回来的信长什么样。把 temperature 调到 1.0 以上多寄几次，比较回信有什么不同。</p>
+      </div>
+      <p class="note">模拟器：不会真的调用模型，回信是预先写好的示例</p>
+      <div class="sim">
+        <form class="panel controls" id="apiForm" autocomplete="off">
+          <label class="field" for="task">任务
+            <select id="task">
+              <option value="feedback">批改作文</option>
+              <option value="level">分级改写</option>
+              <option value="quiz">出练习题</option>
+            </select>
+          </label>
+          <label class="field" for="sys">③ system：角色和规矩
+            <textarea id="sys" rows="3"></textarea>
+          </label>
+          <label class="field" for="usr">④ user：这一次要处理的内容
+            <textarea id="usr" rows="3"></textarea>
+          </label>
+          <div class="field">
+            <label for="temp">⑤ temperature：<b id="tempVal" class="num">0.3</b>　<span id="tempDesc" class="muted"></span></label>
+            <input type="range" id="temp" min="0" max="1.5" step="0.1" value="0.3">
+            <div class="range-ends"><span>0 · 稳定</span><span>1.5 · 放飞</span></div>
+          </div>
+          <div class="send-row">
+            <button type="submit" class="btn" id="sendBtn">寄出这封信</button>
+            <span class="muted small" id="sendCount">还没寄出</span>
+          </div>
+        </form>
+        <div class="letters">
+          <div class="letter">
+            <div class="letter-h"><span>你寄出的信</span><span class="legend">① 地址 · ② Key · ③④ 正文 · ⑤ 参数</span></div>
+            <pre class="code" id="reqJson"></pre>
+          </div>
+          <div class="letter">
+            <div class="letter-h"><span>寄回来的信</span><span class="legend" id="resState">等待寄出</span></div>
+            <pre class="code" id="resJson"><span class="c">// 点“寄出这封信”后，回信会出现在这里</span></pre>
+            <div class="readable" id="resReadable" hidden>
+              <p class="readable-k">content 里的回答，换成人话：</p>
+              <p class="readable-v" id="resText"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API: memory -->
+  <section class="lesson" id="memory">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag api">API · 关键认识</p>
+        <h2>AI 其实没有记忆</h2>
+        <p>每次调用都是一封独立的信。聊天网页“记得”你，是因为它每次都把整段聊天记录重新寄一遍。按顺序说完三句话，再关掉开关、点“重来”试一次。</p>
+      </div>
+      <div class="mem-controls">
+        <label class="switch"><input type="checkbox" id="memToggle" checked> App 自动带上聊天记录</label>
+        <button class="btn" id="memNext" type="button">说下一句</button>
+        <button class="btn ghost" id="memReset" type="button">重来</button>
+      </div>
+      <div class="mem">
+        <div class="panel">
+          <p class="panel-k">你在屏幕上看到的对话</p>
+          <div class="chat" id="chat" aria-live="polite"></div>
+        </div>
+        <div class="panel">
+          <p class="panel-k">这一次真正寄出的信</p>
+          <ol class="envelope" id="envelope"></ol>
+          <p class="panel-k mt">每次寄出的信有多长（粗略估算）</p>
+          <div class="growth" id="growth"></div>
+        </div>
+      </div>
+      <div class="tips">
+        <div class="tip"><b>所以聊得越久</b>信越来越长：更慢、更费钱，开头说过的要求也容易被冲淡。</div>
+        <div class="tip api"><b>使用建议</b>换话题就新开一个对话；重要的要求，在新对话里重新说清楚。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API: two words -->
+  <section class="lesson" id="words">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag api">API · 两个常见词</p>
+        <h2>Token 和 API Key</h2>
+      </div>
+      <div class="grid2">
+        <div class="panel word">
+          <p class="mono-k">Token</p>
+          <h3>AI 读写和计费的单位</h3>
+          <ul class="plain">
+            <li>像按字数付稿费：读进去的、写出来的都算</li>
+            <li>文字被切成小块：英文常是一个词或半个词，中文一般一两个字一块</li>
+            <li>不同模型切法不同，可以在网上找个 tokenizer 工具，看看自己的句子被切成几块</li>
+          </ul>
+        </div>
+        <div class="panel word">
+          <p class="mono-k">API Key</p>
+          <h3>一张能扣钱的门禁卡</h3>
+          <ul class="plain">
+            <li>谁拿到它，谁就能用你的账户调用、扣你的余额</li>
+            <li>不发群、不截图、不写进公开文档</li>
+            <li>万一泄露：去平台上删掉，重新生成一把</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAG: what -->
+  <section class="lesson" id="rag">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag rag">第二部分 · RAG · 是什么</p>
+        <h2>RAG：让 AI 开卷考试</h2>
+        <p>大模型像一个在考闭卷的学霸，有三个短板。RAG（Retrieval-Augmented Generation，检索增强生成）的办法是让它开卷：先翻书，再作答。</p>
+      </div>
+      <div class="gaps">
+        <div class="gap"><b>记不准</b><span>细节会记混，不会也能写得头头是道，这就是“幻觉”</span></div>
+        <div class="gap"><b>不够新</b><span>知识停在训练结束的那一天，之后的新政策、新教材都不知道</span></div>
+        <div class="gap"><b>没读过</b><span>校本教材、教研组规定、你的课程大纲，它从来没见过</span></div>
+      </div>
+      <div class="rag-steps">
+        <div class="rstep"><span class="big">R</span><span class="en">Retrieval</span><b>检索</b><span>先翻书：从资料库里找出和问题最相关的几段</span></div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="rstep"><span class="big">A</span><span class="en">Augmented</span><b>增强</b><span>夹进题目：把这几段资料和问题拼在一起，交给模型</span></div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="rstep"><span class="big">G</span><span class="en">Generation</span><b>生成</b><span>照着作答：模型根据这几段回答，并注明出处</span></div>
+      </div>
+      <div class="phases">
+        <div class="phase"><p class="panel-k">准备阶段（只做一次）</p><p>资料 → 切成一段一段 → 给每段算出“意义坐标” → 存进资料库</p></div>
+        <div class="phase rag"><p class="panel-k">提问阶段（每次都走一遍）</p><p>问题 → 去资料库找意思最近的 3–5 段 → 和问题拼成提示词 → 模型作答并注明出处</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAG: simulator -->
+  <section class="lesson" id="rag-sim">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag rag">RAG · 动手试</p>
+        <h2>看 AI 怎样翻书答题</h2>
+        <p>资料库里放了 10 段虚构的“初二英语组资料”。选一个问题，看它怎样一步步检索、拼提示词、作答。再试试切换“按意思 / 按字面”，或者干脆关掉资料库。</p>
+      </div>
+      <div class="panel rag-controls">
+        <p class="panel-k" style="margin-bottom:0">选一个问题，或者自己输入</p>
+        <div class="presets" id="presets"></div>
+        <form class="ask" id="askForm" autocomplete="off">
+          <label class="sr" for="q">你的问题</label>
+          <input type="text" id="q" placeholder="比如：学生上课不敢发言怎么办？">
+          <button class="btn rag" type="submit">检索并回答</button>
+        </form>
+        <div class="toggles">
+          <label class="switch rag"><input type="checkbox" id="openBook" checked> 开卷：使用资料库</label>
+          <div class="seg" role="radiogroup" aria-label="检索方式">
+            <span class="seg-k">检索方式</span>
+            <label><input type="radio" name="mode" value="meaning" checked><span>按意思</span></label>
+            <label><input type="radio" name="mode" value="keyword"><span>按字面</span></label>
+          </div>
+        </div>
+        <p class="disclose">说明：这里用一张小小的同义词表来模拟“按意思检索”，回答也是按模板拼出来的。真实系统用 embedding 模型算坐标、用大模型写答案，原理相同，精细得多。</p>
+      </div>
+      <ol class="pipeline">
+        <li class="pstep"><div class="pnum">1</div><div class="pbody"><p class="pk">提问</p><p class="pq" id="pQ"></p></div></li>
+        <li class="pstep"><div class="pnum">2</div><div class="pbody">
+          <p class="pk">检索：从 10 段资料里挑出最相关的 3 段 <span class="muted" id="modeNote"></span></p>
+          <div class="retrieve">
+            <ol class="chunks" id="chunks"></ol>
+            <figure class="mapfig">
+              <svg id="map" viewBox="0 0 400 280" role="img" aria-label="意义地图：意思相近的资料靠得近，蓝点是你的问题"></svg>
+              <figcaption>意义地图（示意）：意思越近，点越近。蓝点是你的问题，橙点是被挑中的资料。</figcaption>
+            </figure>
+          </div>
+        </div></li>
+        <li class="pstep"><div class="pnum">3</div><div class="pbody">
+          <p class="pk">拼成提示词：这就是真正寄给模型的那封信 <span class="muted" id="promptNote"></span></p>
+          <pre class="code prompt" id="pPrompt"></pre>
+        </div></li>
+        <li class="pstep"><div class="pnum">4</div><div class="pbody">
+          <p class="pk">生成回答 <span class="muted">点 [1] [2] 可以看到它引用的是哪一段</span></p>
+          <div class="answer" id="pAns" aria-live="polite"></div>
+        </div></li>
+      </ol>
+      <aside class="firth">
+        <p class="firth-k">语言学在这里</p>
+        <div>
+          <blockquote>“You shall know a word by the company it keeps.”</blockquote>
+          <p class="firth-by">J. R. Firth，1957</p>
+        </div>
+        <p>一个词的意思，要看它常和哪些词一起出现，这是分布语义学的基本想法。AI 给文字算“意义坐标”，靠的正是这个思路：你们学过的语言学，就是 AI 检索的地基。</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- How to -->
+  <section class="lesson" id="howto">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag neutral">怎么用</p>
+        <h2>回到自己的课堂：怎么用起来</h2>
+      </div>
+      <div class="howto">
+        <div class="panel">
+          <p class="tag api">API</p>
+          <h3>三种不写代码的方式</h3>
+          <div class="ways">
+            <div class="way"><b>表格里的 AI 列</b><span>飞书多维表格等：加一列 AI，写好提示词，整列自动生成。适合一批数据逐条处理，比如 50 篇作文的评语。</span></div>
+            <div class="way"><b>智能体平台</b><span>扣子（Coze）、Dify：拖拽搭建一个小助手，背后调用模型 API。适合做能反复用的工具。</span></div>
+            <div class="way"><b>几行 Python</b><span>让 AI 帮你写脚本，你只改提示词和文件名。适合想完全按自己的方式来。</span></div>
+          </div>
+          <p class="panel-k" style="margin:4px 0 0">通用步骤</p>
+          <ol class="steps">
+            <li>注册一个模型平台</li>
+            <li>生成 API Key，妥善保管</li>
+            <li>选模型、写好 system 提示词</li>
+            <li>先试 5 条，看效果</li>
+            <li>人工抽查没问题，再批量跑</li>
+          </ol>
+        </div>
+        <div class="panel">
+          <p class="tag rag">RAG</p>
+          <h3>十分钟搭一个资料助手</h3>
+          <ol class="steps">
+            <li>选一个工具：腾讯 ima、扣子、Dify、NotebookLM 等</li>
+            <li>上传资料：PDF、Word 都可以；扫描版要先转成文字</li>
+            <li>写清要求：用下面这段模板</li>
+            <li>拿你知道答案的问题来测，确认它答得对</li>
+            <li>点开引用，核对原文，再给学生用</li>
+          </ol>
+          <div class="tpl-box">
+            <div class="tpl-h"><p class="panel-k" style="margin:0">可以直接复制的要求</p><button class="btn rag" type="button" id="copyTpl">复制</button></div>
+            <pre class="code" id="tpl">你是英语教研助手。
+只根据我上传的资料回答问题。
+资料里没有的，直接说“资料中没有找到”，不要自己补充。
+每个要点后面，注明出自哪份资料的哪一部分。</pre>
+          </div>
+        </div>
+      </div>
+      <p class="panel-k" style="margin:8px 0 0">用 RAG 之前，记住这四个坑</p>
+      <div class="limits">
+        <div class="limit"><b>资料里没有</b><span>它仍可能“补”出一个答案。</span><em>对策：写明“找不到就说找不到”</em></div>
+        <div class="limit"><b>翻错了页</b><span>检索到的段落不对，答案就跟着错。</span><em>对策：换个问法，问得更具体</em></div>
+        <div class="limit"><b>上下文被切断</b><span>一段话被切成两半，意思就不完整了。</span><em>对策：资料结构清楚、有小标题</em></div>
+        <div class="limit"><b>隐私与版权</b><span>学生作文、个人信息，不要随手上传。</span><em>对策：先匿名化，用学校认可的平台</em></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="lesson" id="quiz">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag neutral">自测</p>
+        <h2>六道题，检查一下</h2>
+      </div>
+      <div class="quiz-top">
+        <p class="score" id="score">已答 0 / 6</p>
+        <button class="btn ghost" type="button" id="quizReset">重做</button>
+      </div>
+      <div class="quiz" id="quizList"></div>
+    </div>
+  </section>
+
+  <!-- Glossary -->
+  <section class="lesson" id="glossary">
+    <div class="wrap">
+      <div class="lesson-head">
+        <p class="tag neutral">术语卡</p>
+        <h2>十个词，一页看完</h2>
+      </div>
+      <div class="glossary" id="glossaryList"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">配套课件《API 与 RAG 入门》 · 人工智能与语言教学的研究与实践 · 本页的模型回复和资料库都是为教学编写的示例</div>
+</footer>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CJK = /[　-〿㐀-鿿＀-￯]/g;
+
+  // Rough estimate for teaching only: one CJK character ≈ 1 token, one English word ≈ 1.3 tokens.
+  function estTokens(s) {
+    const cjk = (s.match(CJK) || []).length;
+    const rest = (s.replace(CJK, ' ').match(/[A-Za-z0-9']+|[^\sA-Za-z0-9]/g) || []).length;
+    return Math.max(1, Math.round(cjk + rest * 1.3));
+  }
+
+  function flash(el) {
+    if (reduceMotion) return;
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+  }
+
+  // ---------- navigation ----------
+  $$('a[data-jump]').forEach(a => a.addEventListener('click', e => {
+    const target = document.getElementById(a.getAttribute('href').slice(1));
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }));
+  const navLinks = $$('.nav-links a');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id));
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    $$('.lesson').forEach(s => io.observe(s));
+  }
+
+  // ---------- API simulator ----------
+  const TASKS = {
+    feedback: {
+      system: '你是初中英语老师。请用鼓励的语气批改学生作文：先写一句肯定，再指出最多 3 个语法错误并给出改法。',
+      user: 'Last weekend I go to the park with my friend. We play football and eat ice cream. It was very funny.',
+      responses: [
+        'Great story! 你把周末的活动写得很清楚。\n需要注意 3 处：\n1. go → went（发生在过去，用过去时）\n2. play → played，eat → ate\n3. very funny → a lot of fun（“好玩”用 fun，funny 是“好笑”）',
+        'Nice work! 读起来很有画面感。\n小建议：\n1. last weekend 是过去，go 要改成 went\n2. play、eat 也要变成 played、ate\n3. It was a lot of fun 更地道，funny 指“滑稽”',
+        'What a happy weekend! 继续保持这种具体的描写。\n三个地方可以改：\n1. I go → I went\n2. We play … and eat … → We played … and ate …\n3. very funny → really fun'
+      ]
+    },
+    level: {
+      system: '你是英语分级读物编辑。请把用户给的段落改写成 CEFR A2 水平：句子短，用常见词，保留原意。',
+      user: 'The city council has decided to transform the abandoned factory into a vibrant community center, which will offer free workshops for local residents.',
+      responses: [
+        'The city wants to change the old factory. It will be a new center for the town. People can go there and learn new things for free.',
+        'The old factory is empty now. The city will make it a community center. Local people can take free classes there.',
+        'There is an old factory in the city. Nobody uses it. Soon it will be a fun place for everyone, with free lessons.'
+      ]
+    },
+    quiz: {
+      system: '你是初二英语老师。请根据用户给的语法点出 3 道填空题，附答案，难度适合初二学生。',
+      user: '一般过去时：规则动词和不规则动词',
+      responses: [
+        '1. I ____ (visit) my grandma last Sunday.\n2. They ____ (go) to Hangzhou by train yesterday.\n3. She ____ (not watch) TV last night.\n答案：visited / went / didn’t watch',
+        '1. We ____ (play) basketball after school yesterday.\n2. Tom ____ (buy) a new bike last week.\n3. ____ you ____ (finish) your homework last night?\n答案：played / bought / Did, finish',
+        '1. My father ____ (cook) dinner for us last Friday.\n2. I ____ (see) a great film two days ago.\n3. The students ____ (have) a sports meeting last month.\n答案：cooked / saw / had'
+      ]
+    }
+  };
+  const elTask = $('#task'), elSys = $('#sys'), elUsr = $('#usr'), elTemp = $('#temp');
+  const elReq = $('#reqJson'), elRes = $('#resJson'), elSend = $('#sendBtn');
+  let apiTask = 'feedback', lastIdx = -1, sends = 0;
+
+  const K = k => `<span class="k">"${esc(k)}"</span>`;
+  const S = v => `<span class="s">${esc(JSON.stringify(String(v)))}</span>`;
+  const N = v => `<span class="n">${v}</span>`;
+  const M = m => `<span class="mk">${m}</span>`;
+
+  function tempDesc(t) {
+    if (t <= 0.3) return '很稳：同样的信，回信几乎一样';
+    if (t < 0.8) return '适中：偶尔换个说法';
+    return '放飞：每次回信都不太一样';
+  }
+  function renderReq() {
+    const t = Number(elTemp.value);
+    $('#tempVal').textContent = t.toFixed(1);
+    $('#tempDesc').textContent = tempDesc(t);
+    elReq.innerHTML =
+`${M('①')} <span class="kw">POST</span> https://api.模型厂商.com/v1/chat
+${M('②')} Authorization: Bearer sk-••••••••
+
+{
+  ${K('model')}: ${S('某个模型')},
+  ${K('temperature')}: ${N(t.toFixed(1))},  ${M('⑤')}
+  ${K('messages')}: [
+    { ${K('role')}: ${S('system')},  ${M('③')}
+      ${K('content')}: ${S(elSys.value)} },
+    { ${K('role')}: ${S('user')},  ${M('④')}
+      ${K('content')}: ${S(elUsr.value)} }
+  ]
+}`;
+  }
+  function clearRes() {
+    elRes.innerHTML = '<span class="c">// 点“寄出这封信”后，回信会出现在这里</span>';
+    $('#resReadable').hidden = true;
+    $('#resState').textContent = '等待寄出';
+  }
+  function loadTask(key) {
+    apiTask = key; lastIdx = -1;
+    elSys.value = TASKS[key].system;
+    elUsr.value = TASKS[key].user;
+    renderReq(); clearRes();
+  }
+  function pickResponse(t, temp) {
+    const n = t.responses.length;
+    if (temp <= 0.3) return 0;
+    const vary = temp >= 0.8 ? 1 : 0.35;
+    if (Math.random() >= vary) return lastIdx < 0 ? 0 : lastIdx;
+    let i;
+    do { i = Math.floor(Math.random() * n); } while (n > 1 && i === lastIdx);
+    return i;
+  }
+  function deliver(content, inTok, outTok) {
+    elRes.innerHTML =
+`{
+  ${K('content')}: ${S(content)},
+  ${K('usage')}: { ${K('输入（约）')}: ${N(inTok)}, ${K('输出（约）')}: ${N(outTok)} }
+}`;
+    $('#resText').textContent = content;
+    $('#resReadable').hidden = false;
+    $('#resState').textContent = '已送达 · token 数为粗略估算';
+    $('#sendCount').textContent = `已寄出 ${sends} 次`;
+    flash(elRes);
+  }
+  function send(instant) {
+    const t = TASKS[apiTask];
+    const temp = Number(elTemp.value);
+    const idx = pickResponse(t, temp);
+    lastIdx = idx;
+    let content = t.responses[idx];
+    if (elSys.value.trim() !== t.system || elUsr.value.trim() !== t.user) {
+      content = '（模拟器提示：回信是预先写好的示例。你改了内容，真实模型会按你的新内容来回答。）\n\n' + content;
+    }
+    const inTok = estTokens(elSys.value + elUsr.value) + 8;
+    const outTok = estTokens(content);
+    sends++;
+    if (instant || reduceMotion) { deliver(content, inTok, outTok); return; }
+    elSend.disabled = true;
+    $('#resState').textContent = '后厨正在做菜…';
+    setTimeout(() => { deliver(content, inTok, outTok); elSend.disabled = false; }, 650);
+  }
+  elTask.addEventListener('change', () => loadTask(elTask.value));
+  [elSys, elUsr].forEach(el => el.addEventListener('input', renderReq));
+  elTemp.addEventListener('input', renderReq);
+  $('#apiForm').addEventListener('submit', e => { e.preventDefault(); send(false); });
+  loadTask('feedback');
+  send(true);
+
+  // ---------- memory demo ----------
+  const MEM_STEPS = [
+    { user: '我叫小林，教初二英语。', reply: () => '你好，小林老师！有什么可以帮你的？' },
+    { user: '帮我出 3 道一般过去时的填空题。', reply: () => '好的：\n1. I ____ (go) to the zoo yesterday.\n2. She ____ (watch) TV last night.\n3. We ____ (have) a party last Sunday.' },
+    { user: '对了，我教几年级来着？', reply: sent => sent.some(m => m.content.includes('初二'))
+        ? '你在第一句就说过：你教初二英语。'
+        : '抱歉，我不知道你教几年级。这封信里没有提到，你能告诉我吗？' }
+  ];
+  let memHistory = [], memStep = 0, memSizes = [];
+  const elChat = $('#chat'), elEnv = $('#envelope'), elGrowth = $('#growth'), elNext = $('#memNext');
+
+  function memRender(sent) {
+    if (!memHistory.length) {
+      elChat.innerHTML = '<p class="muted empty">还没有对话。点“说下一句”开始。</p>';
+    } else {
+      elChat.innerHTML = memHistory.map(m =>
+        `<div class="bubble ${m.role === 'user' ? 'user' : 'ai'}${m.forgot ? ' forgot' : ''}">${esc(m.content)}</div>`).join('');
+    }
+    if (!sent) {
+      elEnv.innerHTML = '<li class="muted empty">寄出后，这里显示信里装了哪些内容。</li>';
+    } else {
+      elEnv.innerHTML = sent.map((m, i) =>
+        `<li class="${i === sent.length - 1 ? 'new' : ''}"><span class="role">${m.role}</span><span>${esc(m.content)}</span></li>`).join('');
+    }
+    if (!memSizes.length) {
+      elGrowth.innerHTML = '<p class="muted empty">还没有寄出。</p>';
+    } else {
+      const max = Math.max(...memSizes.map(s => s.tok), 1);
+      elGrowth.innerHTML = memSizes.map((s, i) =>
+        `<div class="grow-row"><span>第 ${i + 1} 次</span><span class="grow-bar"><i style="width:${Math.max(6, s.tok / max * 100)}%"></i></span><span class="num">约 ${s.tok}${s.withHistory ? '' : ' · 未带记录'}</span></div>`).join('');
+    }
+    elNext.disabled = memStep >= MEM_STEPS.length;
+    elNext.textContent = memStep < MEM_STEPS.length ? `说：${MEM_STEPS[memStep].user}` : '三句说完了，点“重来”';
+  }
+  function memSend() {
+    if (memStep >= MEM_STEPS.length) return;
+    const step = MEM_STEPS[memStep];
+    const withHistory = $('#memToggle').checked;
+    const userMsg = { role: 'user', content: step.user };
+    const sent = withHistory ? memHistory.map(({ role, content }) => ({ role, content })).concat(userMsg) : [userMsg];
+    const reply = step.reply(sent);
+    const forgot = memStep === 2 && !sent.some(m => m.content.includes('初二'));
+    memHistory.push(userMsg, { role: 'assistant', content: reply, forgot });
+    memSizes.push({ tok: estTokens(sent.map(m => m.content).join('')), withHistory });
+    memStep++;
+    memRender(sent);
+  }
+  function memReset() { memHistory = []; memStep = 0; memSizes = []; memRender(null); }
+  elNext.addEventListener('click', memSend);
+  $('#memReset').addEventListener('click', memReset);
+  memReset();
+  memSend();
+
+  // ---------- RAG simulator ----------
+  const CONCEPTS = {
+    speaking: ['口语', '开口', '说', '讲', '发言', '表达', '对话', '交流', 'speaking', 'oral'],
+    anxiety: ['焦虑', '紧张', '害怕', '不敢', '敢', '怕', '害羞', '胆', '自信'],
+    activity: ['活动', '游戏', '课堂', '互动', '任务'],
+    writing: ['作文', '写作', '习作', '写', 'writing', 'essay'],
+    rubric: ['评分', '打分', '标准', '分数', '满分', '扣分', '给分', 'rubric'],
+    feedback: ['批改', '反馈', '评语', '纠错', '红字', '点评'],
+    assessment: ['期末', '作业', '考试', '考核', '提交', '截止'],
+    project: ['项目', '绘本', '创作', '展示'],
+    vocab: ['单词', '词汇', '生词', '新词', 'vocabulary', 'word'],
+    review: ['复习', '遗忘', '记住', '记不住', '巩固', '忘'],
+    grammar: ['语法', '时态', '过去时', '动词', 'grammar'],
+    reading: ['阅读', '读', '文章', '课外', '主旨', 'reading'],
+    parents: ['家长', '家校', '父母', '简报'],
+    privacy: ['隐私', '排名', '公布']
+  };
+  const POS = {
+    speaking: [95, 70], anxiety: [55, 120], activity: [140, 115], writing: [285, 70], rubric: [335, 105],
+    feedback: [250, 120], assessment: [320, 175], project: [270, 215], vocab: [95, 210], review: [60, 245],
+    grammar: [165, 225], reading: [205, 45], parents: [365, 245], privacy: [345, 265]
+  };
+  const CHUNKS = [
+    { id: 'A', src: '《初二英语组教学常规》第 2 条', text: '口语课每节至少留出 10 分钟让学生开口：先同桌练，再小组展示，最后个人发言。',
+      point: '循序渐进：先同桌练，再小组展示，最后个人发言；每节口语课至少留 10 分钟让学生开口', w: { speaking: 1, activity: 0.7 }, j: [-14, -12] },
+    { id: 'B', src: '《课堂活动手册》第 5 页', text: '缓解课堂发言焦虑：允许学生先用中文说要点再转成英文；先写后说；教师不当场纠正每一个语法错误。',
+      point: '降低压力：允许先用中文说要点再转成英文，先写后说，老师不当场纠正每一个语法错误', w: { speaking: 0.8, anxiety: 1, activity: 0.6 } },
+    { id: 'C', src: '《课堂活动手册》第 8 页', text: '信息差活动：两人各拿一半信息，必须用英语交流才能完成任务，适合问路、购物等话题。',
+      point: '设计“非说不可”的任务：信息差活动里两人各拿一半信息，必须用英语交流才能完成', w: { speaking: 1, activity: 0.8 }, j: [16, 14] },
+    { id: 'D', src: '《写作评分标准》', text: '初二作文满分 15 分：内容 6 分、语言 6 分、结构 3 分；不足 60 词酌情扣 1–2 分。',
+      point: '初二作文满分 15 分：内容 6 分、语言 6 分、结构 3 分；不足 60 词酌情扣 1–2 分', w: { writing: 0.7, rubric: 1, assessment: 0.5 } },
+    { id: 'E', src: '《写作评分标准》附注', text: '批改时先写一句肯定，再指出不超过 3 个最主要的问题，避免满篇红字。',
+      point: '批改时先写一句肯定，再指出不超过 3 个最主要的问题，避免满篇红字', w: { writing: 0.8, feedback: 1 } },
+    { id: 'F', src: '《期末作业说明》', text: '本学期期末作业为英文绘本创作：4–6 人一组，完成 8 页以上绘本，并进行 3 分钟英文讲述，第 18 周提交。',
+      point: '期末作业是英文绘本创作：4–6 人一组，完成 8 页以上绘本并做 3 分钟英文讲述，第 18 周提交', w: { assessment: 1, project: 0.7 } },
+    { id: 'G', src: '《词汇教学建议》', text: '新词先在语境中呈现，再讲词义；每课时新词不超过 12 个；第二天、第一周、第一个月各复习一次。',
+      point: '新词先放在语境里呈现，每课时不超过 12 个；第二天、第一周、第一个月各复习一次', w: { vocab: 1, review: 0.8 } },
+    { id: 'H', src: '《语法教学建议》', text: '一般过去时先用学生自己的周末经历引入，再归纳规则；不规则动词每周背 10 个。',
+      point: '一般过去时先用学生自己的周末经历引入，再归纳规则；不规则动词每周背 10 个', w: { grammar: 1, review: 0.3 } },
+    { id: 'I', src: '《阅读课流程》', text: '读前预测标题，读中找主旨和细节，读后复述或续写；每周一篇课外阅读。',
+      point: '阅读课分三步：读前预测标题，读中找主旨和细节，读后复述或续写；每周一篇课外阅读', w: { reading: 1, writing: 0.3 } },
+    { id: 'J', src: '《家校沟通约定》', text: '每月给家长发一次学习简报；不在家长群公布学生个人成绩排名。',
+      point: '每月给家长发一次学习简报，不在家长群公布学生个人成绩排名', w: { parents: 1, privacy: 0.8 } }
+  ];
+  CHUNKS.forEach(c => {
+    let x = 0, y = 0, s = 0;
+    for (const k in c.w) { x += POS[k][0] * c.w[k]; y += POS[k][1] * c.w[k]; s += c.w[k]; }
+    const j = c.j || [0, 0];
+    c.x = x / s + j[0]; c.y = y / s + j[1];
+  });
+  const PRESETS = [
+    { q: '怎么让学生敢开口说英语？', intro: '根据资料，可以这样帮学生开口：',
+      closed: '可以多鼓励学生，营造轻松的课堂氛围，多组织小组讨论和角色扮演，让学生在实践中提高口语能力。',
+      warn: '听起来没错，但很空泛：没有出处，也不是你们学校的做法。' },
+    { q: '学生的作文应该怎么打分？', intro: '根据资料，作文评分和批改是这样规定的：',
+      closed: '初中英语作文一般满分 25 分，按内容、语言、结构三档评分，字数不足 80 词扣 3 分。',
+      warn: '具体数字是编的：资料里写的是满分 15 分、不足 60 词酌情扣 1–2 分。' },
+    { q: '期末作业要交什么？什么时候交？', intro: '根据资料，期末作业的要求是：',
+      closed: '期末作业通常是一篇 800 词左右的英文小论文，一般在第 20 周提交。',
+      warn: '完全是编的：资料里写的是英文绘本创作，第 18 周提交。' },
+    { q: '学生总是记不住单词，怎么办？', intro: '根据资料，记单词可以这样安排：',
+      closed: '可以利用艾宾浩斯遗忘曲线，每天背 50 个单词，再用单词 App 打卡。',
+      warn: '泛泛而谈，还和教研组的建议（每课时新词不超过 12 个）对不上。' },
+    { q: '学校的寒假从哪天开始？', intro: '',
+      closed: '寒假一般从 1 月 20 日左右开始。',
+      warn: '这是猜的：资料库里根本没有寒假日期。' }
+  ];
+  const STOP = new Set(['怎么', '什么', '如何', '为什', '么时', '时候', '应该', '哪天', '么办', '怎样']);
+  const TH = { meaning: 0.4, keyword: 0.2 };
+
+  function conceptsOf(q) {
+    const t = q.toLowerCase(), set = new Set();
+    for (const k in CONCEPTS) if (CONCEPTS[k].some(w => t.includes(w))) set.add(k);
+    return set;
+  }
+  function meaningScore(qset, w) {
+    if (!qset.size) return 0;
+    let dot = 0, nn = 0;
+    for (const k in w) { nn += w[k] * w[k]; if (qset.has(k)) dot += w[k]; }
+    return dot / (Math.sqrt(qset.size) * Math.sqrt(nn));
+  }
+  function bigrams(s) {
+    const t = s.toLowerCase().replace(/[^㐀-鿿a-z0-9]/g, '');
+    const out = new Set();
+    for (let i = 0; i < t.length - 1; i++) out.add(t.slice(i, i + 2));
+    return out;
+  }
+  function keywordScore(qbg, c) {
+    if (!qbg.size) return { score: 0, hits: 0 };
+    const hay = (c.src + c.text).toLowerCase();
+    let hits = 0;
+    qbg.forEach(b => { if (hay.includes(b)) hits++; });
+    return { score: hits / qbg.size, hits };
+  }
+  function rank(q, mode) {
+    const qset = conceptsOf(q);
+    const qbg = new Set([...bigrams(q)].filter(b => !STOP.has(b)));
+    const rows = CHUNKS.map((c, i) => {
+      const kw = keywordScore(qbg, c);
+      return { c, i, meaning: meaningScore(qset, c.w), kw: kw.score, hits: kw.hits };
+    });
+    const key = mode === 'meaning' ? 'meaning' : 'kw';
+    rows.forEach(r => { r.score = r[key]; });
+    rows.sort((a, b) => b.score - a.score || a.i - b.i);
+    return { rows, qset, qbgSize: qbg.size };
+  }
+  function usedOf(rows, mode) { return rows.slice(0, 3).filter(r => r.score >= TH[mode]); }
+
+  function queryPos(qset) {
+    if (!qset.size) return null;
+    let x = 0, y = 0;
+    qset.forEach(k => { x += POS[k][0]; y += POS[k][1]; });
+    return [x / qset.size, y / qset.size];
+  }
+  function renderMap(rows, qset, open) {
+    const svg = $('#map');
+    const top = open ? rows.slice(0, 3).filter(r => r.score > 0) : [];
+    const on = new Set(top.map(r => r.c.id));
+    const qp = queryPos(qset);
+    let s = '';
+    if (open && qp) top.forEach(r => { s += `<line class="m-line" x1="${qp[0]}" y1="${qp[1]}" x2="${r.c.x}" y2="${r.c.y}"></line>`; });
+    CHUNKS.forEach(c => {
+      s += `<g class="m-dot${on.has(c.id) ? ' on' : ''}" data-id="${c.id}"><circle cx="${c.x}" cy="${c.y}" r="12"></circle><text x="${c.x}" y="${c.y}" dy="0.36em">${c.id}</text><title>${esc(c.src)}</title></g>`;
+    });
+    if (qp) {
+      const ly = qp[1] < 30 ? qp[1] + 24 : qp[1] - 16;
+      s += `<g class="m-q"><circle cx="${qp[0]}" cy="${qp[1]}" r="8"></circle><text x="${qp[0]}" y="${ly}">你的问题</text></g>`;
+    } else {
+      s += `<text class="m-note" x="200" y="150">这个问题和任何一段资料都不相近</text>`;
+    }
+    if (!open) s += `<text class="m-note" x="200" y="22">闭卷：这一步被跳过</text>`;
+    svg.innerHTML = s;
+  }
+
+  function renderChunks(rows, open, mode, qbgSize) {
+    const el = $('#chunks');
+    el.classList.toggle('off', !open);
+    const used = new Set(open ? usedOf(rows, mode).map(r => r.c.id) : []);
+    el.innerHTML = rows.map((r, idx) => {
+      const picked = open && idx < 3;
+      const pct = Math.round(Math.min(1, r.score) * 100);
+      const scoreLabel = mode === 'meaning' ? `相近度 ${r.score.toFixed(2)}` : `字面重合 ${r.hits}/${qbgSize}`;
+      let badge = '';
+      if (picked) badge = used.has(r.c.id)
+        ? `<span class="badge">第 ${idx + 1} 名 · 被引用</span>`
+        : `<span class="badge low">第 ${idx + 1} 名 · 相关度太低，没采用</span>`;
+      return `<li class="chunk${picked ? ' picked' : ''}" data-id="${r.c.id}">
+        <span class="cid">${r.c.id}</span>
+        <div><p class="csrc">${esc(r.c.src)} ${badge}</p><p class="ctext">${esc(r.c.text)}</p></div>
+        <div class="cscore"><span class="bar"><i style="width:${pct}%"></i></span><span class="num">${scoreLabel}</span></div>
+      </li>`;
+    }).join('');
+  }
+
+  function renderPrompt(q, rows, open) {
+    const el = $('#pPrompt');
+    if (!open) {
+      el.innerHTML = `<span class="p-q">问题：${esc(q)}</span>`;
+      $('#promptNote').textContent = '闭卷：信里只有问题，没有资料';
+      return;
+    }
+    const mats = rows.slice(0, 3).map((r, i) => `<span class="p-mat">[${i + 1}] ${esc(r.c.src)}：${esc(r.c.text)}</span>`).join('\n');
+    el.innerHTML = `<span class="p-rule">你是英语教研助手。只根据下面的资料回答问题；资料里没有的，直接说“资料中没有找到”。每个要点后注明出处编号。</span>\n\n${mats}\n\n<span class="p-q">问题：${esc(q)}</span>`;
+    $('#promptNote').textContent = '开卷：问题 + 检索到的 3 段资料';
+  }
+
+  function renderAnswer(q, rows, open, mode, preset, meaningUsed) {
+    const el = $('#pAns');
+    if (!open) {
+      const text = preset ? preset.closed : '（闭卷模拟）模型只能凭训练时学到的一般常识来回答，说不出你们学校的具体规定，也给不出出处。';
+      el.innerHTML = `<span class="ans-tag bad">闭卷作答 · 没有出处</span><p>${esc(text)}</p>${preset && preset.warn ? `<p class="warn">${esc(preset.warn)}</p>` : ''}<p class="hint">打开“开卷：使用资料库”，对比一下同一个问题的回答。</p>`;
+      return;
+    }
+    const used = usedOf(rows, mode);
+    let html = '';
+    if (!used.length) {
+      html = `<span class="ans-tag none">资料中没有找到</span><p>资料中没有找到与这个问题相关的内容。</p>`;
+      if (mode === 'keyword' && meaningUsed.length) {
+        html += `<p class="hint">按字面一个相关段落都没找到，但按意思能找到 ${meaningUsed.length} 段（资料 ${meaningUsed.map(r => r.c.id).join('、')}）。切回“按意思”看看。</p>`;
+      } else {
+        html += `<p class="hint">这正是我们希望它做的：不知道就说不知道，而不是编一个。关掉资料库，看看闭卷时它会怎么答。</p>`;
+      }
+      el.innerHTML = html;
+      return;
+    }
+    const intro = preset && preset.intro ? preset.intro : '根据资料：';
+    html = `<span class="ans-tag ok">有出处 · 引用了资料 ${used.map(r => r.c.id).join('、')}</span><p>${esc(intro)}</p><ul>` +
+      used.map((r, i) => `<li>${esc(r.c.point)}<button class="cite" type="button" data-id="${r.c.id}" aria-label="查看出处 ${i + 1}">[${i + 1}]</button></li>`).join('') + '</ul>';
+    if (mode === 'keyword') {
+      const missed = meaningUsed.filter(m => !used.some(u => u.c.id === m.c.id));
+      if (missed.length) html += `<p class="hint">按字面检索漏掉了资料 ${missed.map(r => r.c.id).join('、')}。切回“按意思”对比一下回答。</p>`;
+    }
+    el.innerHTML = html;
+  }
+
+  function highlight(id) {
+    $$('.chunk').forEach(li => li.classList.toggle('hl', li.dataset.id === id));
+    $$('#map .m-dot').forEach(g => g.classList.toggle('hl', g.dataset.id === id));
+    const row = $(`.chunk[data-id="${id}"]`);
+    if (row) row.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+  }
+  $('#pAns').addEventListener('click', e => {
+    const b = e.target.closest('.cite');
+    if (b) highlight(b.dataset.id);
+  });
+
+  let currentQ = PRESETS[0].q;
+  function runRag(question) {
+    const q = question.trim();
+    if (!q) return;
+    currentQ = q;
+    const open = $('#openBook').checked;
+    const mode = $('input[name="mode"]:checked').value;
+    const preset = PRESETS.find(p => p.q === q);
+    const { rows, qset, qbgSize } = rank(q, mode);
+    const meaningUsed = usedOf(rank(q, 'meaning').rows, 'meaning');
+    $('#pQ').textContent = q;
+    $('#modeNote').textContent = !open ? '（闭卷：跳过）' : mode === 'meaning' ? '（按意思）' : '（按字面：数两句话有多少相同的两字词）';
+    renderChunks(rows, open, mode, qbgSize);
+    renderMap(rows, qset, open);
+    renderPrompt(q, rows, open);
+    renderAnswer(q, rows, open, mode, preset, meaningUsed);
+    $$('.preset').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.q === q)));
+    flash($('#pAns').closest('.pbody'));
+  }
+  $('#presets').innerHTML = PRESETS.map(p => `<button class="preset" type="button" data-q="${esc(p.q)}" aria-pressed="false">${esc(p.q)}</button>`).join('');
+  $('#presets').addEventListener('click', e => {
+    const b = e.target.closest('.preset');
+    if (!b) return;
+    $('#q').value = '';
+    runRag(b.dataset.q);
+  });
+  $('#askForm').addEventListener('submit', e => { e.preventDefault(); runRag($('#q').value); });
+  $('#openBook').addEventListener('change', () => runRag(currentQ));
+  $$('input[name="mode"]').forEach(r => r.addEventListener('change', () => runRag(currentQ)));
+  runRag(currentQ);
+
+  // ---------- copy template ----------
+  $('#copyTpl').addEventListener('click', () => {
+    const btn = $('#copyTpl'), pre = $('#tpl');
+    const done = label => { btn.textContent = label; setTimeout(() => { btn.textContent = '复制'; }, 1600); };
+    const fallback = () => {
+      const range = document.createRange();
+      range.selectNodeContents(pre);
+      const sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+      done('已选中，按 Ctrl+C');
+    };
+    try {
+      navigator.clipboard.writeText(pre.textContent).then(() => done('已复制'), fallback);
+    } catch (err) { fallback(); }
+  });
+
+  // ---------- quiz ----------
+  const QUIZ = [
+    { q: '网页版聊天和通过 API 调用，用的模型是什么关系？', opts: ['两个完全不同的模型', '同一个模型的两种用法', 'API 用的模型更聪明'], a: 1,
+      why: '同一个模型：网页给人一句一句地用，API 给程序批量地用。' },
+    { q: '聊天聊得很长以后，AI 好像“忘了”开头的要求，主要原因是？', opts: ['模型会自动删除旧记录', '每次寄出的信越来越长，开头的内容容易被冲淡', '服务器出故障了'], a: 1,
+      why: '模型本身没有记忆，App 每次都把历史一起寄过去。信越长，开头的要求越容易被忽略。' },
+    { q: '拿到一个 API Key 之后，正确的做法是？', opts: ['发到班级群里，方便大家一起用', '截图存在手机相册里', '像密码一样保管，泄露了就删掉重建'], a: 2,
+      why: '谁拿到 Key，谁就能用你的账户调用、扣你的钱。' },
+    { q: 'RAG 里的 R 指的是哪一步？', opts: ['检索 Retrieval：先翻资料', '重写 Rewrite：先改写问题', '推理 Reasoning：先想一想'], a: 0,
+      why: 'RAG = Retrieval-Augmented Generation：检索、增强、生成。' },
+    { q: '问“怎么让学生敢开口”，能找到“缓解课堂发言焦虑”那一段，靠的是？', opts: ['两句话里有相同的关键词', '按意思相近来检索', '碰巧排在前面'], a: 1,
+      why: '两句话一个字都不重合，是“意义坐标”让它们挨在了一起。' },
+    { q: '资料库里没有答案的时候，好的 RAG 助手应该？', opts: ['根据常识编一个看起来合理的答案', '直接说“资料中没有找到”', '随便引用一段资料凑数'], a: 1,
+      why: '把“找不到就说找不到”写进提示词，是减少幻觉最简单的办法。' }
+  ];
+  const answers = new Array(QUIZ.length).fill(null);
+  function renderQuiz() {
+    $('#quizList').innerHTML = QUIZ.map((item, qi) => {
+      const chosen = answers[qi];
+      const opts = item.opts.map((o, oi) => {
+        let cls = 'opt';
+        if (chosen !== null) {
+          if (oi === item.a) cls += ' right';
+          else if (oi === chosen) cls += ' wrong';
+        }
+        return `<button class="${cls}" type="button" data-q="${qi}" data-o="${oi}"${chosen !== null ? ' disabled' : ''}>${esc(o)}</button>`;
+      }).join('');
+      const exp = chosen === null ? '' : `<p class="explain">${chosen === item.a ? '答对了。' : '再想想。'}${esc(item.why)}</p>`;
+      return `<div class="q"><h3><span class="qn">${qi + 1}.</span>${esc(item.q)}</h3><div class="opts">${opts}</div>${exp}</div>`;
+    }).join('');
+    const done = answers.filter(a => a !== null).length;
+    const right = answers.filter((a, i) => a === QUIZ[i].a).length;
+    $('#score').textContent = done < QUIZ.length ? `已答 ${done} / ${QUIZ.length}，答对 ${right} 题` : `全部答完：答对 ${right} / ${QUIZ.length} 题`;
+  }
+  $('#quizList').addEventListener('click', e => {
+    const b = e.target.closest('.opt');
+    if (!b || b.disabled) return;
+    answers[Number(b.dataset.q)] = Number(b.dataset.o);
+    renderQuiz();
+  });
+  $('#quizReset').addEventListener('click', () => { answers.fill(null); renderQuiz(); });
+  renderQuiz();
+
+  // ---------- glossary ----------
+  const TERMS = [
+    ['api', 'API', '程序之间约定好的沟通格式，像餐厅的点单方式。'],
+    ['api', 'API Key', '调用 API 的身份凭证，也用来计费。像密码一样保管。'],
+    ['api', 'Token', '模型读写和计费的单位。一段文字会被切成很多 token。'],
+    ['api', 'system 提示词', '写给模型的角色和规矩，比如“你是初中英语老师”。'],
+    ['api', 'temperature', '控制回答的随机程度：越低越稳定，越高越有变化。'],
+    ['rag', '幻觉', '模型自信地给出不存在或错误的信息，比如编造论文。'],
+    ['rag', 'RAG', '检索增强生成：先从资料库找相关段落，再让模型照着回答。'],
+    ['rag', '切块', '把长文档切成一段一段，方便检索。'],
+    ['rag', 'embedding（意义坐标）', '把一段文字换算成一串数字，意思越近，数字越近。'],
+    ['rag', '向量数据库（资料库）', '存放每段资料和它的“意义坐标”的地方。']
+  ];
+  $('#glossaryList').innerHTML = TERMS.map(([k, t, d]) => `<div class="term ${k}"><b>${esc(t)}</b><span>${esc(d)}</span></div>`).join('');
+})();
+</script>
+</body>
+</html>
